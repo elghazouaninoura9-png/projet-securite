@@ -44,8 +44,26 @@ security/
 
 ## Lancement
 
-Aucune installation requise. Il suffit d'ouvrir `index.html` dans un navigateur web.
+Bonjour,
+
+Voici mon projet de sécurité informatique :
+
+1. **Démonstration en ligne (Password Checker)** :  
+   https://elghazouaninoura9-png.github.io/projet-securite/
+
+2. **Code source complet (dépôt GitHub)** :  
+   https://github.com/elghazouaninoura9-png/projet-securite
+
+   → Le code du Phishing URL Detector (Flask + Random Forest) est dans les fichiers `app.py` et `templates/`
+
+3. **Pour exécuter le détecteur de phishing localement** :  
+   - Cloner le dépôt  
+   - Installer les dépendances : `pip install flask scikit-learn pandas`  
+   - Lancer : `python app.py`  
+   - Ouvrir : `http://127.0.0.1:5000`
+
+Cordialement.
 
 ## Auteur
 
-Nom Prénom — M1 Data Science — 2025/2026
+Noura El Ghazouani — MSID — 2025/2026
