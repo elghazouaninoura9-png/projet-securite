@@ -1,6 +1,6 @@
-# 🔐 Password Security Checker
+#  Password Security Checker
 
-**Projet Sécurité Informatique — M1 Data Science — 2025/2026**
+**Projet Sécurité Informatique — 2025/2026**
 
 ---
 
@@ -34,6 +34,12 @@ password-checker/
 ├── rapport/
 │   └── rapport.docx  ← Rapport explicatif
 └── README.md         ← Ce fichier
+security/
+└── phishing-detector/
+    ├── train_model.py   ← entraîne Random Forest
+    ├── app.py           ← analyse et retourne la prédiction en JSON
+    └── templates/
+        └── index.html   ← page commun
 ```
 
 ## Lancement
