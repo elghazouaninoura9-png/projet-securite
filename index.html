@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Password Security Checker — M1 Sécurité</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      
+      <h1> Password Security Checker</h1>
+      <p class="header-sub">Analyse la robustesse de vos mots de passe en temps réel</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Testez votre mot de passe</h2>
+
+      <div class="input-row">
+        <input
+          type="password"
+          id="pwdInput"
+          class="pwd-input"
+          placeholder="Entrez un mot de passe..."
+          oninput="analyzePassword(this.value)"
+          autocomplete="off"
+        />
+        <button class="toggle-btn" onclick="toggleVisibility()" id="visBtn" title="Afficher/masquer">
+          👁
+        </button>
+      </div>
+
+      <div class="strength-bar-bg">
+        <div class="strength-bar" id="strengthBar"></div>
+      </div>
+      <p class="strength-label" id="strengthLabel">— Entrez un mot de passe</p>
+    </section>
+
+    <section class="card">
+      <h2>Critères de sécurité</h2>
+      <div class="criteria-grid">
+        <div class="criterion" id="c-len">
+          <span class="dot"></span> 8 caractères minimum
+        </div>
+        <div class="criterion" id="c-upper">
+          <span class="dot"></span> Majuscule (A-Z)
+        </div>
+        <div class="criterion" id="c-lower">
+          <span class="dot"></span> Minuscule (a-z)
+        </div>
+        <div class="criterion" id="c-digit">
+          <span class="dot"></span> Chiffre (0-9)
+        </div>
+        <div class="criterion" id="c-special">
+          <span class="dot"></span> Caractère spécial (!@#...)
+        </div>
+        <div class="criterion" id="c-long">
+          <span class="dot"></span> 12 caractères ou plus
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="crackCard" style="display:none">
+      <h2> Temps estimé de crackage</h2>
+      <p id="crackTime" class="crack-result"></p>
+      <p class="crack-note">Hypothèse : attaque brute-force à 10 milliards de tentatives/seconde (GPU moderne)</p>
+    </section>
+
+    <section class="card">
+      <h2> Bonnes pratiques</h2>
+      <ul class="tips">
+        <li>N'utilisez jamais le même mot de passe sur plusieurs sites</li>
+        <li>Évitez les informations personnelles (nom, date de naissance)</li>
+        <li>Utilisez un gestionnaire de mots de passe (ex : Bitwarden, 1Password)</li>
+        <li>Activez l'authentification à deux facteurs (2FA) quand c'est possible</li>
+        <li>Changez vos mots de passe régulièrement, surtout après une fuite de données</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2> Exemple de comparaison</h2>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Mot de passe</th>
+            <th>Force</th>
+            <th>Temps de crack estimé</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-danger">
+            <td><code>123456</code></td>
+            <td>Très faible</td>
+            <td>&lt; 1 seconde</td>
+          </tr>
+          <tr class="row-warning">
+            <td><code>Password1</code></td>
+            <td>Moyen</td>
+            <td>Quelques heures</td>
+          </tr>
+          <tr class="row-ok">
+            <td><code>P@ssw0rd#2024!</code></td>
+            <td>Fort</td>
+            <td>Des milliards d'années</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <p>Projet Password Checker — 2025/2026</p>
+  </footer>
+
+  <script src="js/checker.js"></script>
+</body>
+</html>

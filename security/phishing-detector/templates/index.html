@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Phishing URL Detector </title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6fb;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #7B1FA2 0%, #8E24AA 60%, #AB47BC 100%);
+      color: #fff;
+      padding: 2.5rem 1rem 2rem;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    .header-sub { font-size: 1rem; opacity: 0.85; }
+
+    .accuracy-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.22);
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 0.88rem;
+      margin-top: 14px;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 2rem auto;
+      padding: 0 1rem 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #6A1B9A;
+      margin-bottom: 1rem;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid #EDE7F6;
+    }
+
+    .input-row { display: flex; gap: 8px; }
+
+    .url-input {
+      flex: 1;
+      font-size: 0.95rem;
+      padding: 11px 14px;
+      border: 1.5px solid #CE93D8;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: monospace;
+      background: #FAF5FF;
+    }
+
+    .url-input:focus { border-color: #8E24AA; background: #fff; }
+
+    .analyze-btn {
+      background: #8E24AA;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 22px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .analyze-btn:hover { background: #6A1B9A; }
+    .analyze-btn:disabled { background: #CE93D8; cursor: not-allowed; }
+
+    /* Résultat */
+    #result { display: none; }
+
+    .verdict {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 1.25rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .verdict.safe { background: #E8F5E9; border: 1.5px solid #A5D6A7; }
+    .verdict.danger { background: #FFEBEE; border: 1.5px solid #EF9A9A; }
+
+    .verdict-icon { font-size: 2.5rem; }
+    .verdict-label { font-size: 1.3rem; font-weight: 700; }
+    .verdict.safe .verdict-label { color: #1B5E20; }
+    .verdict.danger .verdict-label { color: #B71C1C; }
+    .verdict-conf { font-size: 0.88rem; margin-top: 4px; color: #555; }
+
+    /* Flags de risque */
+    .flags-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .flags-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.9rem; color: #444; line-height: 1.5;
+    }
+    .flags-list li::before {
+      content: "⚠️";
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .no-flags { font-size: 0.9rem; color: #388E3C; }
+
+    /* Features bar chart */
+    .feature-bars { display: flex; flex-direction: column; gap: 10px; }
+    .feature-row { display: flex; flex-direction: column; gap: 4px; }
+    .feature-meta { display: flex; justify-content: space-between; font-size: 0.82rem; color: #555; }
+    .bar-bg { height: 8px; background: #EDE7F6; border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; background: #8E24AA; border-radius: 4px; transition: width 0.5s ease; }
+
+    /* Exemples */
+    .examples { display: flex; flex-wrap: wrap; gap: 8px; }
+    .example-btn {
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1.5px solid #CE93D8;
+      background: #FAF5FF;
+      color: #6A1B9A;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: monospace;
+    }
+    .example-btn:hover { background: #EDE7F6; border-color: #8E24AA; }
+    .example-btn.phishing {
+      border-color: #EF9A9A;
+      background: #FFF5F5;
+      color: #B71C1C;
+    }
+    .example-btn.phishing:hover { background: #FFEBEE; }
+
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .loader {
+      text-align: center;
+      padding: 1rem;
+      color: #8E24AA;
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <span class="badge">Security Project</span>
+    <h1>Phishing URL Detector</h1>
+    <p class="header-sub">Détection d'URLs malveillantes par Machine Learning (Random Forest)</p>
+    <div class="accuracy-badge">Précision du modèle : <strong>{{ accuracy }}%</strong></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Saisie URL -->
+  <div class="card">
+    <h2>Analyser une URL</h2>
+    <div class="input-row">
+      <input type="text" id="urlInput" class="url-input"
+             placeholder="https://exemple.com ou une URL suspecte..."
+             onkeydown="if(event.key==='Enter') analyze()"/>
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">Analyser</button>
+    </div>
+    <div class="loader" id="loader">Analyse en cours...</div>
+  </div>
+
+  <!-- Résultat -->
+  <div class="card" id="result">
+    <h2>Résultat de l'analyse</h2>
+    <div class="verdict" id="verdict">
+      <div class="verdict-icon" id="verdictIcon"></div>
+      <div>
+        <div class="verdict-label" id="verdictLabel"></div>
+        <div class="verdict-conf" id="verdictConf"></div>
+        <div style="font-size:0.82rem; color:#666; margin-top:4px; font-family:monospace;" id="verdictUrl"></div>
+      </div>
+    </div>
+
+    <!-- Indicateurs de risque -->
+    <div class="section-label">Indicateurs détectés</div>
+    <ul class="flags-list" id="flagsList"></ul>
+
+    <!-- Feature importance -->
+    <div style="margin-top:1.25rem">
+      <div class="section-label">Features les plus importantes (modèle ML)</div>
+      <div class="feature-bars" id="featureBars"></div>
+    </div>
+  </div>
+
+  <!-- Exemples -->
+  <div class="card">
+    <h2>Exemples à tester</h2>
+    <div class="section-label" style="margin-bottom:8px">URLs légitimes</div>
+    <div class="examples" id="legitExamples">
+      <button class="example-btn" onclick="setUrl(this.textContent)">https://www.google.com</button>
+      <button class="example-btn" onclick="setUrl(this.textContent)">https://github.com/user/repo</button>
+      <button class="example-btn" onclick="setUrl(this.textContent)">https://www.wikipedia.org/wiki/Python</button>
+      <button class="example-btn" onclick="setUrl(this.textContent)">https://www.paypal.com/myaccount</button>
+    </div>
+    <div class="section-label" style="margin-top:14px; margin-bottom:8px">URLs de phishing (simulées)</div>
+    <div class="examples" id="phishExamples">
+      <button class="example-btn phishing" onclick="setUrl(this.textContent)">http://paypal-secure-login.verify-account.com/signin</button>
+      <button class="example-btn phishing" onclick="setUrl(this.textContent)">http://192.168.1.1/paypal/update-billing</button>
+      <button class="example-btn phishing" onclick="setUrl(this.textContent)">http://apple-id-verify.suspicious-domain.ru/account</button>
+      <button class="example-btn phishing" onclick="setUrl(this.textContent)">http://win-prize-now.scam-site.tk/congratulations</button>
+    </div>
+  </div>
+
+  <!-- Explication du modèle -->
+  <div class="card">
+    <h2>Le fonctionnement du modèle </h2>
+    <p style="font-size:0.92rem; color:#444; line-height:1.7; margin-bottom:0.75rem;">
+      Ce détecteur utilise un <strong>Random Forest</strong> (forêt aléatoire), un algorithme d'ensemble qui combine
+      100 arbres de décision entraînés sur 15 features extraites de chaque URL.
+    </p>
+    <p style="font-size:0.92rem; color:#444; line-height:1.7; margin-bottom:0.75rem;">
+      Les features les plus discriminantes sont : la présence d'une IP, l'utilisation de HTTPS,
+      les mots suspects dans l'URL, les extensions de domaine suspectes, et la longueur de l'URL.
+    </p>
+    <p style="font-size:0.92rem; color:#444; line-height:1.7;">
+      Le modèle retourne une probabilité pour chaque classe (Légitime / Phishing) et
+      affiche les features qui ont le plus contribué à la décision.
+    </p>
+  </div>
+
+</main>
+
+
+
+<script>
+  function setUrl(url) {
+    document.getElementById('urlInput').value = url;
+    analyze();
+  }
+
+  async function analyze() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) return;
+
+    const btn = document.getElementById('analyzeBtn');
+    const loader = document.getElementById('loader');
+    btn.disabled = true;
+    loader.style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      showResult(data);
+    } catch (err) {
+      alert('Erreur de connexion au serveur Flask.');
+    } finally {
+      btn.disabled = false;
+      loader.style.display = 'none';
+    }
+  }
+
+  function showResult(data) {
+    const resultCard = document.getElementById('result');
+    const verdict    = document.getElementById('verdict');
+    const icon       = document.getElementById('verdictIcon');
+    const label      = document.getElementById('verdictLabel');
+    const conf       = document.getElementById('verdictConf');
+    const urlEl      = document.getElementById('verdictUrl');
+
+    verdict.className = 'verdict ' + (data.prediction === 1 ? 'danger' : 'safe');
+    icon.textContent  = data.prediction === 1 ? '🚨' : '✅';
+    label.textContent = data.prediction === 1 ? 'Phishing détecté !' : 'URL légitime';
+    conf.textContent  = `Confiance du modèle : ${data.confidence}%`;
+    urlEl.textContent = data.url;
+
+    // Flags de risque
+    const flagsList = document.getElementById('flagsList');
+    flagsList.innerHTML = '';
+    if (data.risk_flags.length === 0) {
+      flagsList.innerHTML = '<p class="no-flags">✅ Aucun indicateur suspect détecté.</p>';
+    } else {
+      data.risk_flags.forEach(flag => {
+        const li = document.createElement('li');
+        li.textContent = flag;
+        flagsList.appendChild(li);
+      });
+    }
+
+    // Feature importance bars
+    const bars = document.getElementById('featureBars');
+    bars.innerHTML = '';
+    data.features.forEach(f => {
+      bars.innerHTML += `
+        <div class="feature-row">
+          <div class="feature-meta">
+            <span>${f.name.replace(/_/g, ' ')}</span>
+            <span>Valeur: ${f.value} — Importance: ${f.importance}%</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill" style="width:${Math.min(f.importance * 3, 100)}%"></div>
+          </div>
+        </div>`;
+    });
+
+    resultCard.style.display = 'block';
+    resultCard.scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
